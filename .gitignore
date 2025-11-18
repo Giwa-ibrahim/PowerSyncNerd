@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+
+# Environment
+.env
+.venv
+
+# IDEs
+.vscode/
+
+# Data and Logs
+ai/__pycache__/
+crawlers/__pycache__/
+email/__pycache__/
+src/__pycache__/
+data/
+logs/
+tests/
+config/
+
+# Airflow
+airflow/logs/
+airflow/dags/__pycache__/
+airflow.cfg
+airflow.db
+webserver_config.py
+
+
+# Local config overrides  
+config/local_*.json
+config/production_*.json
