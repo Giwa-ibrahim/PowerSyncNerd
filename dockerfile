@@ -20,8 +20,8 @@ RUN pip install --upgrade pip && \
 # Copy the project files into the container
 COPY . .
 
-# Expose port 10000 for FastAPI (Render default)
-EXPOSE 10000
+# Expose port 8090 for FastAPI
+EXPOSE 8090
 
 # Command to act as web server and scheduler together
-CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "10000"]
+CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8090"]
