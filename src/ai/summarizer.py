@@ -15,14 +15,12 @@ from langchain_core.output_parsers import StrOutputParser
 load_dotenv()
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from ai.llm import ollama_client
+from src.ai.llm import get_llm_client
 from database_store.database_client import DatabaseClient
 from database_store.create_table import PowerElectricNews
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("summarizer")
-
-LLAMA_MODEL= os.getenv("LLAMA_MODEL")
 
 # =============================================================================
 # PROMPT TEMPLATES
@@ -40,9 +38,9 @@ YOUR TASK:
 Write a brief, clear summary in 2-3 sentences (50-100 words) that captures:
 - The main event or development
 - Key stakeholders involved
-- Why it matters to Nigeria's power sector
+- Why it matters (if it is a major national event, explain its impact on Nigeria's power sector. If it is a minor local event like a localized outage, just stick strictly to the facts).
 
-Keep it simple and factual.
+CRITICAL RULE: Keep it simple and factual. DO NOT include introductory filler like "Here is the summary" or "This article discusses". Just output the final summary sentences directly.
 
 SUMMARY:"""
 
@@ -57,7 +55,7 @@ Classify as:
 - MEDIUM: Regional development, moderate investment ($10M-$100M)
 - LOW: Minor updates, routine operations (<$10M)
 
-Respond with ONLY ONE WORD: HIGH, MEDIUM, or LOW
+CRITICAL RULE: Respond with ONLY ONE WORD: HIGH, MEDIUM, or LOW. Do not add any punctuation or extra text.
 
 IMPACT:"""
 
@@ -221,7 +219,7 @@ def summarize_recent_articles(
     days_back: int = 7,
     max_articles: int = 20,
     source: Optional[str] = None,
-    model_name: str = LLAMA_MODEL
+    model_name: str = GROQ_MODEL
 ) -> List[Dict]:
     """
     Main function: Summarize recent articles from database
@@ -239,7 +237,7 @@ def summarize_recent_articles(
     logger.info("=" * 60)
     
     # Initialize LLM
-    llm = ollama_client(model_name)
+    llm = get_llm_client()
     
     # Fetch articles
     articles = fetch_recent_articles(days_back, max_articles, source)

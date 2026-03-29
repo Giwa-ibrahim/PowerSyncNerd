@@ -10,11 +10,18 @@ from urllib.parse import urljoin
 from functools import partial
 from itertools import islice, takewhile, chain
 import operator
-from crawlers.ehub_crawler import ElectricityHubScraper
+from .ehub_crawler import ElectricityHubScraper
 
-# Add database path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from database_store.database_client import DatabaseClient
+import logging
+
+logging.basicConfig(
+    level=logging.INFO, 
+    format='%(asctime)s - %(levelname)s - %(message)s', 
+    handlers=[logging.StreamHandler()]
+    )
+logger = logging.getLogger("icirniger")
+
+from src.database_store.database_client import DatabaseClient
 
 class ICIRNigeriaScraper(ElectricityHubScraper):
     """ICIR Nigeria Energy & Power News Scraper"""
@@ -83,11 +90,11 @@ class ICIRNigeriaScraper(ElectricityHubScraper):
             # Print articles using map
             list(map(lambda art: print(f"   ✅ Found article: {art['title'][:50]}..."), valid_articles))
             
-            print(f"📰 Page {page_num}: Found {len(valid_articles)} articles")
+            logger.info(f"📰 Page {page_num}: Found {len(valid_articles)} articles")
             return valid_articles
             
         except Exception as e:
-            print(f"❌ Error scraping page {page_num}: {e}")
+            logger.error(f"❌ Error scraping page {page_num}: {e}")
             return []
     
     def get_article_links_from_category(self, category_url, max_pages=2, max_articles=10):
@@ -116,7 +123,7 @@ class ICIRNigeriaScraper(ElectricityHubScraper):
             all_articles
         ))
         
-        print(f"\n📊 Total unique articles found: {len(unique_articles)}")
+        logger.info(f"\n📊 Total unique articles found: {len(unique_articles)}")
         return list(islice(unique_articles, max_articles)) if max_articles else unique_articles
     
     def extract_date_and_author(self, soup):
@@ -130,24 +137,19 @@ class ICIRNigeriaScraper(ElectricityHubScraper):
         if time_element:
             datetime_attr = time_element.get('datetime')
             if datetime_attr:
-                try:
-                    parsed_date = datetime.fromisoformat(datetime_attr.replace('Z', '+00:00'))
-                    date_text = parsed_date.strftime('%B %d, %Y')
-                    print(f"📅 Date from datetime attr: {date_text}")
-                except:
-                    date_text = time_element.get_text(strip=True)
-                    print(f"📅 Date from time text: {date_text}")
+                parsed_date = datetime.fromisoformat(datetime_attr.replace('Z', '+00:00'))
+                date_text = parsed_date.strftime('%B %d, %Y')
+                #logger.info(f"📅 Date from datetime attr: {date_text}")
             else:
                 date_text = time_element.get_text(strip=True)
-                print(f"📅 Date from time text: {date_text}")
+                #logger.info(f"📅 Date from time text: {date_text}")
 
         # Find author
         author_wrap = soup.find('div', class_='tdb-author-name-wrap')
         if author_wrap:
-            author_text = author_wrap.get_text(strip=True)
-            if author_text and len(author_text) > 2:
-                author = author_text
-                print(f"👤 Author found in wrap text: {author}")
+            author = author_wrap.get_text(strip=True)
+            if author and len(author) > 2:
+                logger.info(f"👤 Author found in wrap text: {author}")
         
         return date_text, author
     
@@ -184,7 +186,7 @@ class ICIRNigeriaScraper(ElectricityHubScraper):
         content_text = "\n\n".join(content_paragraphs)
         word_count = len(content_text.split()) if content_text else 0
         
-        print(f"📝 Final: {len(content_paragraphs)} paragraphs ({word_count} words)")
+        logger.info(f"📝 Final: {len(content_paragraphs)} paragraphs ({word_count} words)")
         
         return {
             'url': url,
@@ -204,22 +206,22 @@ class ICIRNigeriaScraper(ElectricityHubScraper):
             self.setup_driver()
         
         try:
-            print(f"🌐 Navigating to: {url}")
+            logger.info(f"🌐 Navigating to: {url}")
             self.driver.get(url)
             time.sleep(3)
             
             soup = BeautifulSoup(self.driver.page_source, 'html.parser')
             article_data = self.extract_article_data(soup, url)
             
-            print(f"📰 Title: {article_data['title']}")
-            print(f"📝 Words: {article_data['word_count']}")
-            print(f"📅 Date: {article_data['date_text']}")
-            print(f"👤 Author: {article_data['author']}")
+            logger.info(f"📰 Title: {article_data['title']}")
+            logger.info(f"📝 Words: {article_data['word_count']}")
+            logger.info(f"📅 Date: {article_data['date_text']}")
+            logger.info(f"👤 Author: {article_data['author']}")
             
             return article_data
             
         except Exception as e:
-            print(f"❌ Error scraping {url}: {e}")
+            logger.error(f"❌ Error scraping {url}: {e}")
             return None
 
     def process_article_link(self, indexed_link, days_back, max_articles, current_count):
@@ -230,7 +232,7 @@ class ICIRNigeriaScraper(ElectricityHubScraper):
         if current_count[0] >= max_articles:
             return None
         
-        print(f"\n📄 Article {i}: {link_info['title'][:50]}...")
+        logger.info(f"\n📄 Article {i}: {link_info['title'][:50]}...")
         
         article_data = self.scrape_article(link_info['url'])
         if not article_data:
@@ -238,28 +240,28 @@ class ICIRNigeriaScraper(ElectricityHubScraper):
             
         if self.is_article_recent(article_data['date_text'], days_back):
             current_count[0] += 1  # Increment counter
-            print("✅ Recent article - added!")
+            logger.info("✅ Recent article - added!")
             time.sleep(2)
             return article_data
         else:
-            print("⏰ Article too old - skipped")
+            logger.info("⏰ Article too old - skipped")
             time.sleep(2)
             return None
 
     def scrape_recent_articles(self, days_back=7, category_url="https://www.icirnigeria.org/category/business-and-economy/energy-and-power/", max_pages=2, max_articles=5):
         """Main function: Get recent articles using built-in functions"""
         
-        print(f"🚀 Starting ICIR Nigeria scrape for articles from last {days_back} days")
-        print(f"📂 Category: {category_url}")
-        print(f"📄 Max pages: {max_pages}")
-        print(f"📰 Max articles: {max_articles}")
-        print("=" * 60)
+        logger.info(f"🚀 Starting ICIR Nigeria scrape for articles from last {days_back} days")
+        logger.info(f"📂 Category: {category_url}")
+        logger.info(f"📄 Max pages: {max_pages}")
+        logger.info(f"📰 Max articles: {max_articles}")
+        logger.info("=" * 60)
         
         # Get article links
         article_links = self.get_article_links_from_category(category_url, max_pages, max_articles * 2)
         
         if not article_links:
-            print("❌ No articles found")
+            logger.error("❌ No articles found")
             return []
         
         # Create indexed links
@@ -283,14 +285,14 @@ class ICIRNigeriaScraper(ElectricityHubScraper):
         # Take only the required number of articles
         scraped_articles = list(islice(valid_articles, max_articles))
         
-        print(f"\n🎉 Scraped {len(scraped_articles)} recent articles")
+        logger.info(f"\n🎉 Scraped {len(scraped_articles)} recent articles")
         return scraped_articles
     
     def close(self):
         """Close browser"""
         if self.driver:
             self.driver.quit()
-            print("🔴 Browser closed")
+            logger.info("🔴 Browser closed")
 
 # Simple usage
 def scrape_icir_news(days_back=7, max_articles=5, max_pages=2, headless=True):
@@ -312,7 +314,7 @@ def scrape_icir_news(days_back=7, max_articles=5, max_pages=2, headless=True):
         # Save to database
         if articles:
             saved_count, duplicate_count = db_client.save_articles(articles, source_name="ICIR Nigeria")
-            print(f"\n💾 Database: {saved_count} new articles saved, {duplicate_count} duplicates skipped")
+            logger.info(f"\n💾 Database: {saved_count} new articles saved, {duplicate_count} duplicates skipped")
         
         
         return articles
@@ -321,30 +323,30 @@ def scrape_icir_news(days_back=7, max_articles=5, max_pages=2, headless=True):
         db_client.close()
 
 # Test
-# if __name__ == "__main__":
-#     print("⚡ ICIR Nigeria Energy Scraper")
-#     print("=" * 40)
+if __name__ == "__main__":
+    logger.info("⚡ ICIR Nigeria Energy Scraper")
+    logger.info("=" * 40)
     
-#     articles = scrape_icir_news(
-#         days_back=60, 
-#         max_articles=2,
-#         max_pages=3,
-#         headless=True
-#     )
+    articles = scrape_icir_news(
+        days_back=60, 
+        max_articles=2,
+        max_pages=3,
+        headless=True
+    )
 
-#     if articles:
-#         with open('icir_nigeria_articles.json', 'w', encoding='utf-8') as f:
-#             json.dump(articles, f, indent=2, ensure_ascii=False)
+    if articles:
+        with open('icir_nigeria_articles.json', 'w', encoding='utf-8') as f:
+            json.dump(articles, f, indent=2, ensure_ascii=False)
         
-#         print(f"\n✅ SUCCESS! Scraped {len(articles)} articles")
-#         print("💾 Data saved to: icir_nigeria_articles.json")
+        logger.info(f"\n✅ SUCCESS! Scraped {len(articles)} articles")
+        logger.info("💾 Data saved to: icir_nigeria_articles.json")
 
-#         # Use enumerate and map for output instead of for loop
-#         article_info = enumerate(articles, 1)
-#         output_func = lambda x: print(f"\n{x[0]}. {x[1]['title']}\n"
-#                                      f"   📅 {x[1]['date_text']} | 👤 {x[1]['author']}\n"
-#                                      f"   📝 {x[1]['word_count']} words\n"
-#                                      f"   🔗 {x[1]['url']}")
-#         list(map(output_func, article_info))
-#     else:
-#         print("❌ No recent articles found")
+        # Use enumerate and map for output instead of for loop
+        article_info = enumerate(articles, 1)
+        output_func = lambda x: logger.info(f"\n{x[0]}. {x[1]['title']}\n"
+                                     f"   📅 {x[1]['date_text']} | 👤 {x[1]['author']}\n"
+                                     f"   📝 {x[1]['word_count']} words\n"
+                                     f"   🔗 {x[1]['url']}")
+        list(map(output_func, article_info))
+    else:
+        logger.info("❌ No recent articles found")

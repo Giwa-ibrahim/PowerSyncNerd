@@ -19,3 +19,20 @@ class PowerElectricNews(Base):
     
     def __repr__(self):
         return f"<PowerElectricNews(title='{self.title[:50]}...', source='{self.source}')>"
+
+class Subscriber(Base):
+    """Newsletter subscriber table model"""
+    __tablename__ = 'subscribers'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    full_name = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    preferred_time = Column(String, nullable=False, default='both')  # '8am', '6pm', 'both'
+    occupation = Column(String, nullable=True)
+    industry = Column(String, nullable=True)
+    reason = Column(String, nullable=True)
+    is_active = Column(Integer, default=1)
+    created_at = Column(DateTime, default=func.now())
+    
+    def __repr__(self):
+        return f"<Subscriber(email='{self.email}', occupation='{self.occupation}')>"

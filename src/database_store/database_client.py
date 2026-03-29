@@ -6,7 +6,7 @@ from sqlalchemy.pool import StaticPool
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from dotenv import load_dotenv
-from .create_table import PowerElectricNews, Base
+from .create_table import PowerElectricNews, Subscriber, Base
 
 logger = logging.getLogger("database_client")
 
@@ -164,7 +164,71 @@ class DatabaseClient:
             
         finally:
             session.close()
+            
+    def add_subscriber(self, email: str, preferred_time: str = 'both', full_name: str = None, occupation: str = None, industry: str = None, reason: str = None):
+        """Add a new subscriber or update if exists"""
+        session = self.get_session()
+        try:
+            subscriber = session.query(Subscriber).filter(Subscriber.email == email).first()
+            if subscriber:
+                subscriber.preferred_time = preferred_time
+                if full_name: subscriber.full_name = full_name
+                if occupation: subscriber.occupation = occupation
+                if industry: subscriber.industry = industry
+                if reason: subscriber.reason = reason
+                subscriber.is_active = 1
+            else:
+                subscriber = Subscriber(
+                    email=email, 
+                    preferred_time=preferred_time,
+                    full_name=full_name,
+                    occupation=occupation,
+                    industry=industry,
+                    reason=reason,
+                    is_active=1
+                )
+                session.add(subscriber)
+            session.commit()
+            return True
+        except SQLAlchemyError as e:
+            session.rollback()
+            logger.error(f"Error adding subscriber: {e}")
+            return False
+        finally:
+            session.close()
+
+    def get_active_subscribers(self, trigger_time: str = None):
+        """Get active subscribers. If trigger_time is provided (e.g. '8am'), filter by it (and 'both')."""
+        session = self.get_session()
+        try:
+            query = session.query(Subscriber).filter(Subscriber.is_active == 1)
+            if trigger_time:
+                query = query.filter(Subscriber.preferred_time.in_([trigger_time, 'both']))
+            subscribers = query.all()
+            return [{"email": sub.email, "full_name": sub.full_name or "Reader"} for sub in subscribers]
+        except SQLAlchemyError as e:
+            logger.error(f"Error fetching subscribers: {e}")
+            return []
+        finally:
+            session.close()
         
+    def unsubscribe(self, email: str):
+        """Deactivate a subscriber by setting is_active to 0"""
+        session = self.get_session()
+        try:
+            subscriber = session.query(Subscriber).filter(Subscriber.email == email).first()
+            if subscriber:
+                subscriber.is_active = 0
+                session.commit()
+                return True
+            return False
+        except SQLAlchemyError as e:
+            session.rollback()
+            logger.error(f"Error unsubscribing: {e}")
+            return False
+        finally:
+            session.close()
+
     def close(self):
         """Close database connection"""
         if self.engine:

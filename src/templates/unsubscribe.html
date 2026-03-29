@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unsubscribe - PowerDigest</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #673ab7;
+            --bg-color: #f8f9fa;
+            --text-color: #202124;
+            --secondary-text: #5f6368;
+            --border-color: #dadce0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 48px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            color: var(--secondary-text);
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+
+        .email-display {
+            background-color: #f1f3f4;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: var(--text-color);
+            display: inline-block;
+            margin-bottom: 32px;
+            font-weight: 500;
+        }
+
+        .survey-title {
+            text-align: left;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 16px;
+        }
+
+        .option-group {
+            text-align: left;
+            margin-bottom: 32px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-item:hover {
+            border-color: var(--primary-color);
+            background-color: #f3e5f5;
+        }
+
+        .option-item input[type="radio"] {
+            margin-right: 12px;
+            accent-color: var(--primary-color);
+            width: 18px;
+            height: 18px;
+        }
+
+        .option-item label {
+            font-size: 14px;
+            color: var(--text-color);
+            cursor: pointer;
+            flex-grow: 1;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #5e35b1;
+        }
+
+        .success-icon {
+            font-size: 64px;
+            color: #10b981;
+            margin-bottom: 24px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 24px;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        input[name="email_hidden"] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% if success is none %}
+            <h1>Unsubscribe</h1>
+            <p class="subtitle">We're sorry to see you go. Confirm below to stop receiving the PowerDigest newsletter.</p>
+            
+            <div class="email-display">{{ email if email else 'No email provided' }}</div>
+
+            <form action="/unsubscribe" method="POST">
+                <input type="hidden" name="email" value="{{ email }}">
+                
+                <div class="survey-title">Optional: Why are you leaving?</div>
+                <div class="option-group">
+                    <div class="option-item">
+                        <input type="radio" id="too_many" name="unsub_reason" value="Too many emails">
+                        <label for="too_many">Sending too many emails</label>
+                    </div>
+                    <div class="option-item">
+                        <input type="radio" id="not_relevant" name="unsub_reason" value="No longer relevant">
+                        <label for="not_relevant">The content is no longer relevant to me</label>
+                    </div>
+                    <div class="option-item">
+                        <input type="radio" id="didnt_sign_up" name="unsub_reason" value="Didn't sign up">
+                        <label for="didnt_sign_up">I never signed up for this list</label>
+                    </div>
+                    <div class="option-item">
+                        <input type="radio" id="other" name="unsub_reason" value="Other">
+                        <label for="other">Other reason</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">Confirm Unsubscribe</button>
+            </form>
+        {% else %}
+            <div class="success-icon">✓</div>
+            <h1>Unsubscribed</h1>
+            <p class="subtitle">You have been successfully removed from our list for <strong>{{ email }}</strong>.</p>
+            <p class="subtitle" style="font-size: 13px;">It may take up to 24 hours for all mail systems to update. We hope to see you again!</p>
+            <a href="/" class="back-link">Return to Home</a>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscribe - PowerDigest</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0ebf8;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .form-wrapper {
+            max-width: 640px;
+            width: 100%;
+        }
+        .header-card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            border-top: 10px solid #673ab7;
+            padding: 24px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        .header-card h1 {
+            margin: 0 0 12px;
+            font-size: 32px;
+            font-weight: 400;
+            color: #202124;
+        }
+        .header-card p {
+            margin: 0;
+            color: #5f6368;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            transition: box-shadow 0.2s;
+        }
+        .card:focus-within {
+            box-shadow: -4px 0 0 #673ab7, 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .card-header {
+            font-size: 16px;
+            color: #202124;
+            margin-bottom: 16px;
+        }
+        .required::after {
+            content: " *";
+            color: #d93025;
+        }
+        .help-text {
+            color: #5f6368;
+            font-size: 12px;
+            margin-top: -12px;
+            margin-bottom: 12px;
+        }
+        input[type="text"], input[type="email"] {
+            width: 100%;
+            border: none;
+            border-bottom: 1px solid #dadce0;
+            padding: 8px 0;
+            font-size: 14px;
+            transition: border-bottom 0.2s;
+            background-color: transparent;
+        }
+        input[type="text"]:focus, input[type="email"]:focus {
+            outline: none;
+            border-bottom: 2px solid #673ab7;
+            padding-bottom: 7px;
+        }
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .radio-label {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: #202124;
+            cursor: pointer;
+        }
+        .radio-label input[type="radio"] {
+            margin-right: 12px;
+            width: 20px;
+            height: 20px;
+            accent-color: #673ab7;
+            cursor: pointer;
+        }
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #dadce0;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+            cursor: pointer;
+        }
+        select:focus {
+            border: 2px solid #673ab7;
+            padding: 7px;
+        }
+        .submit-btn {
+            background-color: #673ab7;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .submit-btn:hover {
+            background-color: #5e35b1;
+        }
+        .btn-wrapper {
+            display: flex;
+            justify-content: flex-start;
+            margin-top: 12px;
+            margin-bottom: 30px;
+        }
+        .message {
+            margin-bottom: 12px;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            background-color: #ffffff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        .success { border-left: 6px solid #10b981; }
+        .error { border-left: 6px solid #ef4444; }
+    </style>
+</head>
+<body>
+
+<div class="form-wrapper">
+    {% if success is not none %}
+        <div class="message {{ 'success' if success else 'error' }}">
+            {{ message }}
+        </div>
+    {% endif %}
+
+    <form action="/subscribe" method="POST">
+        <div class="header-card">
+            <h1>Nigeria Power Sector Digest</h1>
+            <p>Get automated, AI-summarized insights on the Nigerian power sector delivered right to your inbox.</p>
+            <p style="color: #d93025; font-size: 13px; margin-top: 15px;">* Indicates required question</p>
+        </div>
+
+        <div class="card">
+            <div class="card-header required">Email Address</div>
+            <input type="email" name="email" required placeholder="Your email">
+        </div>
+
+        <div class="card">
+            <div class="card-header required">Full Name</div>
+            <div class="help-text">So we know what to call you!</div>
+            <input type="text" name="full_name" required placeholder="Your answer">
+        </div>
+
+        <div class="card">
+            <div class="card-header required">Current Occupation Status</div>
+            <div class="radio-group">
+                <label class="radio-label"><input type="radio" name="occupation" value="Student" required> Student</label>
+                <label class="radio-label"><input type="radio" name="occupation" value="Employed"> Employed</label>
+                <label class="radio-label"><input type="radio" name="occupation" value="Self-Employed"> Self-Employed</label>
+                <label class="radio-label"><input type="radio" name="occupation" value="Unemployed / Exploring"> Unemployed / Exploring</label>
+                <label class="radio-label"><input type="radio" name="occupation" value="Other"> Other</label>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Power Sector Industry & Interest</div>
+            <div class="help-text">Optional - especially useful if you are Employed in the sector. What part of the industry interests you most?</div>
+            <select name="industry">
+                <option value="" disabled selected>Choose</option>
+                <option value="Generation (Renewables, Gas, Hydro)">Generation (Renewables, Gas, Hydro)</option>
+                <option value="Transmission (Grid Management)">Transmission (Grid Management)</option>
+                <option value="Distribution (DisCo Operations)">Distribution (DisCo Operations)</option>
+                <option value="Regulation & Policy (Govt, NERC)">Regulation & Policy (Govt, NERC)</option>
+                <option value="Consulting, Tech & Engineering">Consulting, Tech & Engineering</option>
+                <option value="Off-Grid & Mini-Grids Solutions">Off-Grid & Mini-Grids Solutions</option>
+                <option value="General Consumer Interest">General Consumer Interest</option>
+            </select>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Primary Reason for Subscribing</div>
+            <div class="help-text">Optional</div>
+            <select name="reason">
+                <option value="" disabled selected>Choose</option>
+                <option value="Academic Research">Academic Research</option>
+                <option value="Business & Market Intelligence">Business & Market Intelligence</option>
+                <option value="Policy Tracking">Policy Tracking</option>
+                <option value="Investment Opportunities">Investment Opportunities</option>
+                <option value="General Knowledge">General Knowledge</option>
+            </select>
+        </div>
+
+        <div class="card">
+            <div class="card-header required">Preferred Delivery Time</div>
+            <div class="radio-group">
+                <label class="radio-label"><input type="radio" name="preferred_time" value="8am" required> Morning (8:00 AM)</label>
+                <label class="radio-label"><input type="radio" name="preferred_time" value="6pm"> Evening (6:00 PM)</label>
+                <label class="radio-label"><input type="radio" name="preferred_time" value="both"> Both Morning & Evening</label>
+            </div>
+        </div>
+
+        <div class="btn-wrapper">
+            <button type="submit" class="submit-btn">Submit</button>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

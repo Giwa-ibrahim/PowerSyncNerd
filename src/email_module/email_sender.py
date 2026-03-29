@@ -10,6 +10,8 @@ from dotenv import load_dotenv
 # Import formatter
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from email_module.email_format import format_email_html, format_plain_text
+from src.database_store.database_client import DatabaseClient
+
 # Load environment variables
 load_dotenv()
 
@@ -31,7 +33,7 @@ def get_email_config() -> dict:
         'password': os.getenv('SMTP_PASSWORD'),
         'sender_email': os.getenv('SENDER_EMAIL'),
         'sender_name': os.getenv('SENDER_NAME'),
-        'recipients': os.getenv('EMAIL_RECIPIENTS', '').split(',')
+        'base_url': os.getenv('APP_BASE_URL', 'http://localhost:10000')
     }
 
 
@@ -81,7 +83,8 @@ def send_email_smtp(
     html_content: str,
     plain_text: str = None,
     subject: str = None,
-    recipients: List[str] = None
+    recipients: List[str] = None,
+    trigger_time: str = None
 ) -> bool:
     """
     Send email digest via SMTP
@@ -90,7 +93,7 @@ def send_email_smtp(
         html_content: HTML email content
         plain_text: Plain text fallback (optional, will use simple version if None)
         subject: Email subject (optional, auto-generated if None)
-        recipients: List of recipient emails (optional, uses .env if None)
+        recipients: List of recipient dictionaries (optional, uses .env if None)
     
     Returns:
         True if successful, False otherwise
@@ -107,12 +110,17 @@ def send_email_smtp(
         logger.error("❌ Sender email not configured in .env")
         return False
     
-    # Use provided recipients or default from config
+    # Use provided recipients or fetch from database
     if recipients is None:
-        recipients = [email.strip() for email in config['recipients'] if email.strip()]
+        try:
+            db = DatabaseClient()
+            recipients = db.get_active_subscribers(trigger_time)
+        except Exception as e:
+            logger.error(f"❌ Failed to fetch subscribers from DB: {e}")
+            recipients = []
     
     if not recipients:
-        logger.error("❌ No recipients configured")
+        logger.error("❌ No active recipients found for this trigger time.")
         return False
     
     # Generate default subject if not provided
@@ -149,29 +157,41 @@ def send_email_smtp(
             server.login(config['username'], config['password'])
             logger.info("✅ Authentication successful")
             
-            # Send to each recipient
-            for recipient in recipients:
-                recipient = recipient.strip()
-                if not recipient:
+            # Send to each recipient dict
+            for recipient_data in recipients:
+                if isinstance(recipient_data, str):
+                    # Fallback for manual string testing
+                    recipient_email = recipient_data.strip()
+                    recipient_name = "Reader"
+                else:
+                    recipient_email = recipient_data.get('email', '').strip()
+                    recipient_name = recipient_data.get('full_name', 'Reader').strip().split()[0]  # Just First Name
+                
+                if not recipient_email:
                     continue
                 
+                # Replace personalized tokens
+                unsubscribe_url = f"{config['base_url']}/unsubscribe?email={recipient_email}"
+                personalized_html = html_content.replace('%%SUBSCRIBER_NAME%%', recipient_name).replace('%%UNSUBSCRIBE_URL%%', unsubscribe_url)
+                personalized_text = plain_text.replace('%%SUBSCRIBER_NAME%%', recipient_name).replace('%%UNSUBSCRIBE_URL%%', unsubscribe_url)
+                
                 try:
-                    logger.info(f"\n📨 Sending to: {recipient}")
+                    logger.info(f"\n📨 Sending to: {recipient_email} (Name: {recipient_name})")
                     
                     # Create message
                     message = create_email_message(
-                        html_content=html_content,
-                        plain_text=plain_text,
+                        html_content=personalized_html,
+                        plain_text=personalized_text,
                         subject=subject,
                         sender_email=config['sender_email'],
                         sender_name=config['sender_name'],
-                        recipient_email=recipient
+                        recipient_email=recipient_email
                     )
                     
                     # Send
                     server.send_message(message)
                     successful_sends += 1
-                    logger.info(f"✅ Sent successfully to {recipient}")
+                    logger.info(f"✅ Sent successfully to {recipient_email}")
                     
                 except Exception as e:
                     failed_sends += 1
@@ -204,12 +224,13 @@ def send_email_smtp(
 # CONVENIENCE FUNCTIONS
 # =============================================================================
 
-def send_digest_email(summaries: List[dict]) -> bool:
+def send_digest_email(summaries: List[dict], trigger_time: str = None) -> bool:
     """
     Complete workflow: Format summaries and send email
     
     Args:
         summaries: List of article summaries from summarizer
+        trigger_time: '8am', '6pm' or None to fetch relevant subscribers
     
     Returns:
         True if successful, False otherwise
@@ -229,7 +250,8 @@ def send_digest_email(summaries: List[dict]) -> bool:
     # Send
     return send_email_smtp(
         html_content=html_content,
-        plain_text=plain_text
+        plain_text=plain_text,
+        trigger_time=trigger_time
     )
 
 

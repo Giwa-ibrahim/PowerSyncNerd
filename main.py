@@ -2,6 +2,7 @@
 PowerDigest Main Pipeline
 Orchestrates crawling, summarization, and email sending
 """
+import time
 import logging
 from src.crawlers.main_crawler import all_crawlers
 from src.ai.summarizer import summarize_recent_articles
@@ -15,19 +16,22 @@ logging.basicConfig(
 logger = logging.getLogger("powerdigest_pipeline")
 
 
-def run_digest_pipeline(days_back: int = 1, max_articles: int = 20):
+def run_digest_pipeline(days_back: int = 1, max_articles: int = 20, trigger_time: str = None):
     """
     Run complete PowerDigest pipeline
     
     Args:
         days_back: Number of days to look back for articles
         max_articles: Maximum articles to process
+        trigger_time: Optional time context (e.g., '8am', '6pm') to filter recipients
     """
     
     logger.info("=" * 80)
     logger.info("⚡ POWERDIGEST PIPELINE STARTED")
     logger.info("=" * 80)
     logger.info(f"Configuration: days_back={days_back}, max_articles={max_articles}")
+    
+    start_time = time.time()
     
     # Step 1: Crawl news
     logger.info("\n📰 Step 1: Crawling news sources...")
@@ -67,7 +71,7 @@ def run_digest_pipeline(days_back: int = 1, max_articles: int = 20):
     # Step 3: Send email digest
     logger.info("\n📧 Step 3: Sending email digest...")
     try:
-        success = send_digest_email(summaries)
+        success = send_digest_email(summaries, trigger_time=trigger_time)
         
         if success:
             logger.info("✅ Email sent successfully!")
@@ -80,8 +84,14 @@ def run_digest_pipeline(days_back: int = 1, max_articles: int = 20):
         return False
     
     # Pipeline complete
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    minutes = int(elapsed_time // 60)
+    seconds = int(elapsed_time % 60)
+
     logger.info("\n" + "=" * 80)
     logger.info("🎉 PIPELINE COMPLETE")
+    logger.info(f"⏱️ Total Processing Time: {minutes} minutes and {seconds} seconds")
     logger.info("=" * 80)
     logger.info("📊 Summary:")
     logger.info(f"   • Articles processed: {len(summaries)}")

@@ -34,20 +34,20 @@ def format_email_html(summaries: List[Dict]) -> str:
     </style>
     <![endif]-->
 </head>
-<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f5f5f5;">
+<body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #f3f4f6;">
         <tr>
             <td align="center" style="padding: 40px 20px;">
                 <!-- Main Container -->
-                <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); max-width: 600px; width: 100%;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); max-width: 800px; margin: 0 auto;">
                     
                     <!-- Header -->
                     <tr>
-                        <td style="padding: 40px 40px 30px; text-align: center; border-bottom: 3px solid #2c3e50;">
-                            <h1 style="margin: 0 0 10px; color: #2c3e50; font-size: 28px; font-weight: 700; line-height: 1.2;">
+                        <td style="padding: 50px 40px 40px; text-align: center; border-bottom: 4px solid #1f2937;">
+                            <h1 style="margin: 0 0 12px; color: #111827; font-size: 32px; font-weight: 800; line-height: 1.2;">
                                 ⚡ Nigeria Power Sector Digest
                             </h1>
-                            <p style="margin: 0; color: #7f8c8d; font-size: 14px; line-height: 1.5;">
+                            <p style="margin: 0; color: #4b5563; font-size: 16px; font-weight: 500;">
                                 {current_date} • {len(summaries)} Articles
                             </p>
                         </td>
@@ -55,7 +55,8 @@ def format_email_html(summaries: List[Dict]) -> str:
                     
                     <!-- Content -->
                     <tr>
-                        <td style="padding: 40px;">
+                        <td style="padding: 50px 40px;">
+                            <h2 style="font-size: 24px; color: #2c3e50; margin-top: 0; margin-bottom: 30px; font-weight: 500;">Hello %%SUBSCRIBER_NAME%%,</h2>
 """
 
     # HIGH IMPACT SECTION
@@ -199,6 +200,10 @@ def format_email_html(summaries: List[Dict]) -> str:
                                 Nigeria Power Sector Intelligence<br>
                                 Automated news analysis powered by AI
                             </p>
+                             <p style="margin: 20px 0 0; color: #95a5a6; font-size: 11px;">
+                                You are receiving this because you subscribed to PowerDigest.<br>
+                                <a href="%%UNSUBSCRIBE_URL%%" style="color: #95a5a6; text-decoration: underline;">Unsubscribe</a> from these updates.
+                            </p>
                         </td>
                     </tr>
                     
@@ -272,6 +277,7 @@ def format_plain_text(summaries: List[Dict]) -> str:
     lines.append("\n" + "=" * 80)
     lines.append("PowerDigest - Nigeria Power Sector Intelligence")
     lines.append("=" * 80)
+    lines.append("\nUnsubscribe: %%UNSUBSCRIBE_URL%%")
     
     return "\n".join(lines)
 
