@@ -144,11 +144,17 @@ def send_email_smtp(
     failed_sends = 0
 
     try:
-        # Connect to SMTP server using SSL (Verified working on port 465)
-        logger.info(f"🔌 Connecting to {config['smtp_host']}:{config['smtp_port']} (SSL Mode)...")
-        
-        with smtplib.SMTP_SSL(config['smtp_host'], config['smtp_port']) as server:
-            # Login (SSL doesn't need starttls)
+        # Connect to SMTP server
+        if config['smtp_port'] == 465:
+            logger.info(f"🔌 Connecting to {config['smtp_host']}:465 (SSL Mode)...")
+            server = smtplib.SMTP_SSL(config['smtp_host'], config['smtp_port'])
+        else:
+            logger.info(f"🔌 Connecting to {config['smtp_host']}:{config['smtp_port']} (STARTTLS Mode)...")
+            server = smtplib.SMTP(config['smtp_host'], config['smtp_port'])
+            server.starttls()
+
+        with server:
+            # Login
             logger.info("🔐 Authenticating...")
             server.login(config['username'], config['password'])
             logger.info("✅ Authentication successful")
