@@ -73,7 +73,7 @@ def send_email_smtp(
     # If no recipients provided, fetch from DB
     if recipients is None:
         try:
-            from src.db.database import DatabaseClient
+            from src.database_store.database_client import DatabaseClient
             db = DatabaseClient()
             recipients = db.get_active_subscribers(trigger_time)
             logger.info(f"📋 Found {len(recipients)} active subscribers for {trigger_time}")
