@@ -194,14 +194,14 @@ def format_email_html(summaries: List[Dict]) -> str:
                     <tr>
                         <td style="padding: 30px 40px; text-align: center; border-top: 2px solid #ecf0f1; background-color: #fafafa;">
                             <p style="margin: 0 0 5px; color: #2c3e50; font-size: 15px; font-weight: 700;">
-                                PowerDigest
+                                PowerSyncNerd
                             </p>
                             <p style="margin: 0; color: #7f8c8d; font-size: 13px; line-height: 1.5;">
                                 Nigeria Power Sector Intelligence<br>
                                 Automated news analysis powered by AI
                             </p>
                              <p style="margin: 20px 0 0; color: #95a5a6; font-size: 11px;">
-                                You are receiving this because you subscribed to PowerDigest.<br>
+                                You are receiving this because you subscribed to PowerSyncNerd.<br>
                                 <a href="%%UNSUBSCRIBE_URL%%" style="color: #95a5a6; text-decoration: underline;">Unsubscribe</a> from these updates.
                             </p>
                         </td>
@@ -275,7 +275,7 @@ def format_plain_text(summaries: List[Dict]) -> str:
             lines.append(f"\nRead more: {article['url']}\n")
     
     lines.append("\n" + "=" * 80)
-    lines.append("PowerDigest - Nigeria Power Sector Intelligence")
+    lines.append("PowerSyncNerd - Nigeria Power Sector Intelligence")
     lines.append("=" * 80)
     lines.append("\nUnsubscribe: %%UNSUBSCRIBE_URL%%")
     

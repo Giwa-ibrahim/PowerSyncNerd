@@ -50,7 +50,7 @@ def all_crawlers(
     """
     
     logger.info("=" * 80)
-    logger.info("⚡ POWERDIGEST CRAWLER")
+    logger.info("⚡ POWERSYNCNERD CRAWLER")
     logger.info("=" * 80)
     
     # Define available crawlers
@@ -149,7 +149,7 @@ def get_database_stats() -> Dict:
 if __name__ == "__main__":
     import json
     
-    print("\n⚡ PowerDigest Main Crawler")
+    print("\n⚡ PowerSyncNerd Main Crawler")
     print("=" * 60)
     
     # Run all crawlers

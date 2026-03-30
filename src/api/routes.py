@@ -43,7 +43,7 @@ async def subscribe(
     )
     
     if success:
-        message = f"Successfully subscribed! You will receive the PowerDigest at {preferred_time}."
+        message = f"Successfully subscribed! You will receive the PowerSyncNerd at {preferred_time}."
     else:
         message = "Failed to subscribe. Please try again or verify your email."
         
@@ -56,7 +56,7 @@ async def subscribe(
 @router.get("/health")
 async def health_check():
     """Render port monitoring endpoint"""
-    return {"status": "ok", "service": "powerdigest-api"}
+    return {"status": "ok", "service": "powersyncnerd-api"}
 
 @router.get("/unsubscribe", response_class=HTMLResponse)
 async def unsubscribe_page(request: Request, email: Optional[str] = None):
@@ -74,7 +74,7 @@ async def handle_unsubscribe(
     unsub_reason: Optional[str] = Form(None)
 ):
     """Handle the actual deactivation request with optional feedback"""
-    logger = logging.getLogger("powerdigest_unsubscribe")
+    logger = logging.getLogger("powersyncnerd_unsubscribe")
     db = DatabaseClient()
     success = db.unsubscribe(email)
     
@@ -91,8 +91,8 @@ async def handle_unsubscribe(
 @router.post("/trigger-digest")
 async def trigger_digest(time: str, secret: str, background_tasks: BackgroundTasks):
     """Secure endpoint triggered remotely by cron-job.org or GitHub Actions"""
-    logger = logging.getLogger("powerdigest_webhook")
-    EXPECTED_SECRET = os.getenv("CRON_SECRET_TOKEN", "powerdigest_secure_123")
+    logger = logging.getLogger("powersyncnerd_webhook")
+    EXPECTED_SECRET = os.getenv("CRON_SECRET_TOKEN", "powersyncnerd_secure_123")
     
     if secret != EXPECTED_SECRET:
         logger.warning("Attempted unauthorized pipeline trigger!")

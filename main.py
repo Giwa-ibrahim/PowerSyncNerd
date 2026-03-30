@@ -1,5 +1,5 @@
 """
-PowerDigest Main Pipeline
+PowerSyncNerd Main Pipeline
 Orchestrates crawling, summarization, and email sending
 """
 import time
@@ -13,12 +13,12 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
-logger = logging.getLogger("powerdigest_pipeline")
+logger = logging.getLogger("powersyncnerd_pipeline")
 
 
 def run_digest_pipeline(days_back: int = 1, max_articles: int = 20, trigger_time: str = None):
     """
-    Run complete PowerDigest pipeline
+    Run complete PowerSyncNerd pipeline
     
     Args:
         days_back: Number of days to look back for articles
@@ -27,7 +27,7 @@ def run_digest_pipeline(days_back: int = 1, max_articles: int = 20, trigger_time
     """
     
     logger.info("=" * 80)
-    logger.info("⚡ POWERDIGEST PIPELINE STARTED")
+    logger.info("⚡ POWERSYNCNERD PIPELINE STARTED")
     logger.info("=" * 80)
     logger.info(f"Configuration: days_back={days_back}, max_articles={max_articles}")
     

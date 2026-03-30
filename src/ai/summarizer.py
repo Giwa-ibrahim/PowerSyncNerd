@@ -233,7 +233,7 @@ def summarize_recent_articles(
     Returns:
         List of article summaries with metadata
     """
-    logger.info("⚡ POWERDIGEST AI SUMMARIZER")
+    logger.info("⚡ POWERSYNCNERD AI SUMMARIZER")
     logger.info("=" * 60)
     
     # Initialize LLM
@@ -265,7 +265,7 @@ def main():
     """Test the summarizer"""
     import json
     
-    print("\n⚡ PowerDigest AI Summarizer")
+    print("\n⚡ PowerSyncNerd AI Summarizer")
     print("=" * 60)
     
     # Summarize recent articles

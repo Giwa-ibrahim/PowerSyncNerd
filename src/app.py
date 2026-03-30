@@ -11,7 +11,7 @@ from src.database_store.database_client import DatabaseClient
 from src.api.routes import router
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("powerdigest_app")
+logger = logging.getLogger("powersyncnerd_app")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -24,7 +24,7 @@ async def lifespan(app: FastAPI):
     pass
 
 # Initialize main FastAPI application
-app = FastAPI(title="PowerDigest API", lifespan=lifespan)
+app = FastAPI(title="PowerSyncNerd API", lifespan=lifespan)
 
 # Include the endpoints
 app.include_router(router)

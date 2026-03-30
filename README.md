@@ -1,6 +1,6 @@
-# ⚡ PowerDigest — AI-Powered Daily Intelligence Pipeline
+# ⚡ PowerSyncNerd — AI-Powered Daily Intelligence Pipeline
 
-PowerDigest automatically collects, summarizes, and delivers daily insights on Nigeria's power and energy sector.
+PowerSyncNerd automatically collects, summarizes, and delivers daily insights on Nigeria's power and energy sector.
 
 ## 🚀 Features
 

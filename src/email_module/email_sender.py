@@ -290,7 +290,7 @@ def test_email_connection() -> bool:
 
 def main():
     """Test email sender with sample data"""
-    print("\n📧 PowerDigest Email Sender Test")
+    print("\n📧 PowerSyncNerd Email Sender Test")
     print("=" * 60)
     
     # Test connection first
@@ -306,13 +306,13 @@ def main():
     # Sample summaries
     test_summaries = [
         {
-            'title': 'Test Article: PowerDigest Email System',
-            'summary': 'This is a test email from PowerDigest to verify that the email sending system is working correctly.',
+            'title': 'Test Article: PowerSyncNerd Email System',
+            'summary': 'This is a test email from PowerSyncNerd to verify that the email sending system is working correctly.',
             'impact': 'HIGH',
-            'source': 'PowerDigest System',
+            'source': 'PowerSyncNerd System',
             'author': 'System Test',
             'published_date': 'Today',
-            'url': 'https://powerdigest.ng'
+            'url': 'https://powersyncnerd.onrender.com'
         }
     ]
     
