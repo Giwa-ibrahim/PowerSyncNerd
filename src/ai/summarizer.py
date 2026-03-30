@@ -7,6 +7,7 @@ import os
 from typing import List, Dict, Optional
 from datetime import datetime, timedelta
 import logging
+import time
 from dotenv import load_dotenv
 
 from langchain_core.prompts import PromptTemplate
@@ -249,6 +250,10 @@ def summarize_recent_articles(
     # Process each article
     summaries = []
     for i, article in enumerate(articles, 1):
+        if i > 1:
+            logger.info("⏳ Rate Limit Guard: Waiting 3 seconds...")
+            time.sleep(3)
+            
         logger.info(f"\nProcessing {i}/{len(articles)}")
         summary = summarize_article(llm, article)
         summaries.append(summary)

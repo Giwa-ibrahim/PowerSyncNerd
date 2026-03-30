@@ -126,7 +126,7 @@ def send_email_smtp(
     # Generate default subject if not provided
     if subject is None:
         from datetime import datetime
-        subject = f"⚡ Nigeria Power Sector Digest - {datetime.now().strftime('%B %d, %Y')}"
+        subject = f"⚡ PowerSyncNerd News Digest - {datetime.now().strftime('%B %d, %Y')}"
     
     # Generate plain text fallback if not provided
     if plain_text is None:
@@ -142,17 +142,13 @@ def send_email_smtp(
     # Send to each recipient
     successful_sends = 0
     failed_sends = 0
-    
+
     try:
-        # Connect to SMTP server
-        logger.info(f"🔌 Connecting to {config['smtp_host']}:{config['smtp_port']}...")
+        # Connect to SMTP server using SSL (Verified working on port 465)
+        logger.info(f"🔌 Connecting to {config['smtp_host']}:{config['smtp_port']} (SSL Mode)...")
         
-        with smtplib.SMTP(config['smtp_host'], config['smtp_port']) as server:
-            server.ehlo()
-            server.starttls()
-            server.ehlo()
-            
-            # Login
+        with smtplib.SMTP_SSL(config['smtp_host'], config['smtp_port']) as server:
+            # Login (SSL doesn't need starttls)
             logger.info("🔐 Authenticating...")
             server.login(config['username'], config['password'])
             logger.info("✅ Authentication successful")
@@ -270,10 +266,7 @@ def test_email_connection() -> bool:
     logger.info(f"   Username: {config['username']}")
     
     try:
-        with smtplib.SMTP(config['smtp_host'], config['smtp_port'], timeout=10) as server:
-            server.ehlo()
-            server.starttls()
-            server.ehlo()
+        with smtplib.SMTP_SSL(config['smtp_host'], config['smtp_port'], timeout=10) as server:
             server.login(config['username'], config['password'])
             
         logger.info("✅ SMTP connection successful")

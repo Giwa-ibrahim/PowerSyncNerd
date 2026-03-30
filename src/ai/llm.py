@@ -31,7 +31,7 @@ def get_llm_client(model_name: str = "llama-3.3-70b-versatile"):
         google_api_key = os.getenv("GEMINI_API_KEY")
         if google_api_key:
             fallback_llm = ChatGoogleGenerativeAI(
-                model="gemini-3.1-flash-lite",
+                model="gemini-3.1-flash-lite-preview",
                 temperature=LLM_TEMPERATURE,
                 google_api_key=google_api_key
             )
