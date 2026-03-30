@@ -29,18 +29,31 @@ class ElectricityHubScraper:
         self.base_url = "https://theelectricityhub.com"
         
     def setup_driver(self):
-        """Setup Chrome driver with robust cloud configuration"""
-        logger.info("🔧 Setting up Chrome driver...")
+        """Setup Chrome driver with EXTREME memory saving for Render Free Tier"""
+        logger.info("🔧 Setting up ULTRA-LEAN Chrome driver...")
         
         chrome_options = Options()
-        if self.headless:
-            chrome_options.add_argument("--headless=new") # Modern headless mode
-
-        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--headless=new")
         chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--disable-extensions")
+        chrome_options.add_argument("--disable-infobars")
+        chrome_options.add_argument("--disable-notifications")
+        chrome_options.add_argument("--hide-scrollbars")
         
-        # 🛡️ CLOUD FIX: Point to the Chrome binary we installed in the Dockerfile
+        # 🧠 MEMORY WIN: Disable images and extra features
+        prefs = {
+            "profile.managed_default_content_settings.images": 2, # No Images
+            "profile.default_content_settings.popups": 0,
+            "profile.default_content_setting_values.notifications": 2,
+            "profile.default_content_setting_values.automatic_downloads": 2,
+            "profile.managed_default_content_settings.stylesheets": 2, # No CSS
+            "profile.managed_default_content_settings.fonts": 2, # No Fonts
+        }
+        chrome_options.add_experimental_option("prefs", prefs)
+        
+        # Binary Path for Render Deployment
         chrome_bin = "/usr/bin/google-chrome"
         if os.path.exists(chrome_bin):
             chrome_options.binary_location = chrome_bin
@@ -49,13 +62,13 @@ class ElectricityHubScraper:
         try:
             service = Service(ChromeDriverManager().install())
             self.driver = webdriver.Chrome(service=service, options=chrome_options)
-            logger.info("✅ Chrome driver initialized successfully!")
+            self.driver.set_page_load_timeout(30) 
+            logger.info("✅ Ultra-lean Chrome driver initialized!")
         except Exception as e:
-            logger.error(f"❌ Failed to initialize Chrome driver: {e}")
-            # Final fallback: try without Service wrapper
+            logger.error(f"❌ Driver init failed: {e}")
             try:
                 self.driver = webdriver.Chrome(options=chrome_options)
-                logger.info("✅ Driver initialized using fallback method.")
+                logger.info("✅ Fallback driver initialized.")
             except Exception as e2:
                 logger.error(f"💥 CRITICAL: Both driver setup methods failed: {e2}")
                 raise e2

@@ -1,5 +1,5 @@
-# Use Python 3.13-slim to match your local version exactly
-FROM python:3.13-slim
+# Use Python 3.12-slim for maximum stability and lower RAM footprint
+FROM python:3.12-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -9,7 +9,7 @@ ENV PYTHONPATH=/app
 # Set the working directory
 WORKDIR /app
 
-# Install system dependencies for Chrome/Selenium 
+# Install system dependencies for Chrome/Selenium (optimized for size)
 RUN apt-get update && apt-get install -y \
     wget \
     gnupg \
@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y \
     && echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list \
     && apt-get update \
     && apt-get install -y google-chrome-stable \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
@@ -34,5 +35,5 @@ COPY . .
 # Expose port (Default for Render FastAPI)
 EXPOSE 10000
 
-# Start command
-CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "10000"]
+# 🧠 CRITICAL RAM WIN: Single worker prevents double-loading the app
+CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "10000", "--workers", "1"]

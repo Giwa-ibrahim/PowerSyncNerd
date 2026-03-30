@@ -108,6 +108,11 @@ def all_crawlers(
             results['total_articles'] += article_count
             logger.info(f"✅ {source_info['name']}: {article_count} articles")
             
+            # 🧘‍♂️ RAM RECOVERY: Clear memory between sources
+            import gc, time
+            gc.collect()
+            time.sleep(5) 
+            
         except Exception as e:
             error_msg = f"{source_info['name']}: {str(e)}"
             logger.error(f"❌ {error_msg}")
