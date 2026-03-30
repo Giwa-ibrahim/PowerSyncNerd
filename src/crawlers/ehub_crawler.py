@@ -29,19 +29,36 @@ class ElectricityHubScraper:
         self.base_url = "https://theelectricityhub.com"
         
     def setup_driver(self):
-        """Setup Chrome driver with WebDriver Manager"""
+        """Setup Chrome driver with robust cloud configuration"""
         logger.info("🔧 Setting up Chrome driver...")
         
         chrome_options = Options()
         if self.headless:
-            chrome_options.add_argument("--headless")
+            chrome_options.add_argument("--headless=new") # Modern headless mode
 
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-gpu")
         
-        service = Service(ChromeDriverManager().install())
-        self.driver = webdriver.Chrome(service=service, options=chrome_options)
-        logger.info("✅ Chrome driver initialized!")
+        # 🛡️ CLOUD FIX: Point to the Chrome binary we installed in the Dockerfile
+        chrome_bin = "/usr/bin/google-chrome"
+        if os.path.exists(chrome_bin):
+            chrome_options.binary_location = chrome_bin
+            logger.info(f"📍 Using system Chrome binary: {chrome_bin}")
+        
+        try:
+            service = Service(ChromeDriverManager().install())
+            self.driver = webdriver.Chrome(service=service, options=chrome_options)
+            logger.info("✅ Chrome driver initialized successfully!")
+        except Exception as e:
+            logger.error(f"❌ Failed to initialize Chrome driver: {e}")
+            # Final fallback: try without Service wrapper
+            try:
+                self.driver = webdriver.Chrome(options=chrome_options)
+                logger.info("✅ Driver initialized using fallback method.")
+            except Exception as e2:
+                logger.error(f"💥 CRITICAL: Both driver setup methods failed: {e2}")
+                raise e2
     
     def parse_date(self, date_text):
         """Parse date from format: 'October 31, 2025'"""
