@@ -8,6 +8,8 @@ from typing import List, Dict, Optional
 from datetime import datetime, timedelta
 import logging
 import time
+import json
+import re
 from dotenv import load_dotenv
 
 from langchain_core.prompts import PromptTemplate
@@ -24,115 +26,40 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger("summarizer")
 
 # =============================================================================
-# PROMPT TEMPLATES
+# PROMPT TEMPLATE
 # =============================================================================
 
-SUMMARY_PROMPT = """You are an expert analyst for Nigeria's power sector.
-
-Analyze this news article and provide a concise summary.
+ANALYSIS_PROMPT = """You are an expert analyst for Nigeria's power sector.
+Analyze this news article and provide a concise summary AND an impact assessment.
 
 TITLE: {title}
 SOURCE: {source}
 CONTENT: {content}
 
 YOUR TASK:
-Write a brief, clear summary in 2-3 sentences (50-100 words) that captures:
-- The main event or development
-- Key stakeholders involved
-- Why it matters (if it is a major national event, explain its impact on Nigeria's power sector. If it is a minor local event like a localized outage, just stick strictly to the facts).
+1. Write a brief, clear summary in 2-3 sentences (50-100 words).
+2. Assess the impact level (HIGH, MEDIUM, or LOW).
+   - HIGH: Major infrastructure project, significant policy change, large investment (>$100M).
+   - MEDIUM: Regional development, moderate investment ($10M-$100M).
+   - LOW: Minor updates, routine operations (<$10M).
 
-CRITICAL RULE: Keep it simple and factual. DO NOT include introductory filler like "Here is the summary" or "This article discusses". Just output the final summary sentences directly.
+CRITICAL RULE: You MUST return your response in the following JSON format:
+{{
+  "summary": "your summary here",
+  "impact": "HIGH/MEDIUM/LOW"
+}}
 
-SUMMARY:"""
-
-
-IMPACT_PROMPT = """Assess the impact level of this news on Nigeria's power sector.
-
-TITLE: {title}
-CONTENT: {content}
-
-Classify as:
-- HIGH: Major infrastructure project, significant policy change, large investment (>$100M)
-- MEDIUM: Regional development, moderate investment ($10M-$100M)
-- LOW: Minor updates, routine operations (<$10M)
-
-CRITICAL RULE: Respond with ONLY ONE WORD: HIGH, MEDIUM, or LOW. Do not add any punctuation or extra text.
-
-IMPACT:"""
+Do not include any other text in your response. Just the JSON.
+"""
 
 
 # =============================================================================
 # CORE FUNCTIONS 
 # =============================================================================
 
-def generate_summary(llm, title: str, content: str, source: str) -> str:
-    """Generate article summary using LCEL"""
-    try:
-        # Create prompt template
-        prompt = PromptTemplate(
-            input_variables=['title', 'content', 'source'],
-            template=SUMMARY_PROMPT
-        )
-        
-        # Create chain
-        chain = prompt | llm | StrOutputParser()
-        
-        # Invoke chain
-        summary = chain.invoke({
-            'title': title,
-            'content': content[:3000],
-            'source': source
-        })
-        
-        return summary.strip()
-        
-    except Exception as e:
-        logger.error(f"Error generating summary: {e}")
-        return "Summary unavailable."
-
-
-def assess_impact(llm, title: str, content: str) -> str:
-    """Assess impact level of each article"""
-    try:
-        # Create prompt template
-        prompt = PromptTemplate(
-            input_variables=['title', 'content'],
-            template=IMPACT_PROMPT
-        )
-        
-        # Create chain 
-        chain = prompt | llm | StrOutputParser()
-        
-        # Invoke chain
-        response = chain.invoke({
-            'title': title,
-            'content': content[:2000]
-        })
-        
-        response = response.strip().upper()
-        
-        if 'HIGH' in response:
-            return 'HIGH'
-        elif 'LOW' in response:
-            return 'LOW'
-        else:
-            return 'MEDIUM'
-            
-    except Exception as e:
-        logger.error(f"Error assessing impact: {e}")
-        return 'MEDIUM'
-
-
 def summarize_article(llm, article: PowerElectricNews) -> Dict:
     """
-    Summarize a single article
-    
-    Args:
-        llm: Initialized Ollama LLM
-        article: PowerElectricNews database object
-    
-    Returns:
-        Dict with summary, impact, and metadata
+    Summarize and assess impact in a single API call
     """
     logger.info(f"🔍 Analyzing: {article.title[:50]}...")
     
@@ -141,10 +68,37 @@ def summarize_article(llm, article: PowerElectricNews) -> Dict:
         content = article.content or ''
         source = article.source or 'Unknown'
         
-        # Generate summary and assess impact
-        summary = generate_summary(llm, title, content, source)
-        impact = assess_impact(llm, title, content)
+        # Create prompt template
+        prompt = PromptTemplate(
+            input_variables=['title', 'content', 'source'],
+            template=ANALYSIS_PROMPT
+        )
         
+        # Create chain
+        chain = prompt | llm | StrOutputParser()
+        
+        # Invoke chain (Combined call)
+        response = chain.invoke({
+            'title': title,
+            'content': content[:3000],
+            'source': source
+        })
+        
+        # Clean response if LLM added markdown backticks
+        clean_response = re.sub(r'^```json\s*|\s*```$', '', response.strip(), flags=re.MULTILINE)
+        
+        try:
+            data = json.loads(clean_response)
+            summary = data.get('summary', 'Summary unavailable.')
+            impact = data.get('impact', 'MEDIUM').strip().upper()
+            if impact not in ['HIGH', 'MEDIUM', 'LOW']:
+                impact = 'MEDIUM'
+        except Exception:
+            # Fallback for non-JSON response
+            logger.warning("⚠️ LLM didn't return valid JSON, attempting simple parse")
+            summary = response[:300].strip()
+            impact = 'HIGH' if 'HIGH' in response.upper() else 'LOW' if 'LOW' in response.upper() else 'MEDIUM'
+
         logger.info(f"✅ Complete: {impact} impact")
         
         return {

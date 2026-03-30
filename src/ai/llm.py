@@ -10,12 +10,12 @@ try:
 except (ValueError, TypeError):
     LLM_TEMPERATURE = 0.2
 
-def get_llm_client(model_name: str = "llama-3.3-70b-versatile"):
+def get_llm_client(model_name: str = "llama-3.1-8b-instant"):
     """
     Initializes and returns a Groq LLM client (Llama3) with a fallback to Google Gemini.
     """
     try:
-        # Primary Model: Groq LLaMA 3
+        # Primary Model: Groq LLaMA 3.1 8B (Faster, higher limits)
         groq_api_key = os.getenv("GROQ_API_KEY")
         if groq_api_key:
             primary_llm = ChatGroq(
@@ -27,11 +27,11 @@ def get_llm_client(model_name: str = "llama-3.3-70b-versatile"):
             primary_llm = None
             logger.warning("GROQ_API_KEY not found. Attempting to use fallback directly.")
 
-        # Fallback Model: Google Gemini
+        # Fallback Model: Google Gemini 2.5 Flash lite (Stable)
         google_api_key = os.getenv("GEMINI_API_KEY")
         if google_api_key:
             fallback_llm = ChatGoogleGenerativeAI(
-                model="gemini-3.1-flash-lite-preview",
+                model="gemini-2.5-flash-lite",
                 temperature=LLM_TEMPERATURE,
                 google_api_key=google_api_key
             )
@@ -42,7 +42,7 @@ def get_llm_client(model_name: str = "llama-3.3-70b-versatile"):
         # Compose routing
         if primary_llm and fallback_llm:
             llm_with_fallback = primary_llm.with_fallbacks([fallback_llm])
-            logger.info("Groq LLM initialized with Gemini Fallback.")
+            logger.info("Groq (Llama 3.1 8B) + Gemini 2.5 Flash lite online.")
             return llm_with_fallback
         elif primary_llm:
             logger.info("Groq LLM initialized safely (No Google Fallback available).")
