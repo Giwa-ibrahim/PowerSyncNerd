@@ -5,6 +5,7 @@ beautifulsoup4
 feedparser
 langchain-groq
 langchain-google-genai
+resend
 python-dotenv
 sqlalchemy
 psycopg2-binary
