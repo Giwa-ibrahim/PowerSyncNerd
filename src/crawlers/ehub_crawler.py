@@ -29,18 +29,19 @@ class ElectricityHubScraper:
         self.base_url = "https://theelectricityhub.com"
         
     def setup_driver(self):
-        """Setup Chrome driver with EXTREME memory saving for Render Free Tier"""
-        logger.info("🔧 Setting up ULTRA-LEAN Chrome driver...")
+        """Setup Chrome driver with EXTREME memory saving and FAST load strategy"""
+        logger.info("🔧 Setting up ULTRA-LEAN EAGER Chrome driver...")
         
         chrome_options = Options()
+        chrome_options.page_load_strategy = 'eager' # 🏎️ FAST: Don't wait for images/ads
         chrome_options.add_argument("--headless=new")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--disable-extensions")
-        chrome_options.add_argument("--disable-infobars")
-        chrome_options.add_argument("--disable-notifications")
-        chrome_options.add_argument("--hide-scrollbars")
+        chrome_options.add_argument("--disable-site-isolation-trials") # 🧠 SAVE RAM
+        chrome_options.add_argument("--disable-setuid-sandbox")
+        chrome_options.add_argument("--blink-settings=imagesEnabled=false") # 🖼️ NO IMAGES
         
         # 🧠 MEMORY WIN: Disable images and extra features
         prefs = {
