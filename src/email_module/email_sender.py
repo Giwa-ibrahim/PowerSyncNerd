@@ -2,6 +2,7 @@ import os
 import sys
 import logging
 import smtplib
+import socket
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from typing import List
@@ -35,6 +36,23 @@ def get_email_config() -> dict:
         'sender_name': os.getenv('SENDER_NAME'),
         'base_url': os.getenv('APP_BASE_URL', 'http://localhost:10000')
     }
+
+def force_ipv4(host: str) -> str:
+    """
+    Manually resolve a hostname to its IPv4 address to bypass 
+    potential IPv6 routing issues in cloud environments like Render.
+    """
+    try:
+        # socket.AF_INET ensures we only get IPv4 addresses
+        results = socket.getaddrinfo(host, None, socket.AF_INET)
+        if results:
+            # Pick the first IPv4 record found
+            ipv4 = results[0][4][0]
+            return ipv4
+    except Exception as e:
+        # If resolution fails, return the original host
+        return host
+    return host
 
 
 # =============================================================================
@@ -145,12 +163,22 @@ def send_email_smtp(
 
     try:
         # Connect to SMTP server
-        if config['smtp_port'] == 465:
-            logger.info(f"🔌 Connecting to {config['smtp_host']}:465 (SSL Mode)...")
-            server = smtplib.SMTP_SSL(config['smtp_host'], config['smtp_port'])
+        smtp_host = config['smtp_host']
+        
+        # Cloud Fix: Force IPv4 to bypass Render networking issues
+        ipv4_host = force_ipv4(smtp_host)
+        if ipv4_host != smtp_host:
+            logger.info(f"🌐 Cloud Route Optimized: {smtp_host} ➜ {ipv4_host}")
+            target_host = ipv4_host
         else:
-            logger.info(f"🔌 Connecting to {config['smtp_host']}:{config['smtp_port']} (STARTTLS Mode)...")
-            server = smtplib.SMTP(config['smtp_host'], config['smtp_port'])
+            target_host = smtp_host
+
+        if config['smtp_port'] == 465:
+            logger.info(f"🔌 Connecting to {target_host}:465 (SSL Mode)...")
+            server = smtplib.SMTP_SSL(target_host, config['smtp_port'], timeout=30)
+        else:
+            logger.info(f"🔌 Connecting to {target_host}:{config['smtp_port']} (STARTTLS Mode)...")
+            server = smtplib.SMTP(target_host, config['smtp_port'], timeout=30)
             server.starttls()
 
         with server:
