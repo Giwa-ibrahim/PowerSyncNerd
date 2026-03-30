@@ -219,7 +219,7 @@ def summarize_recent_articles(
     days_back: int = 7,
     max_articles: int = 20,
     source: Optional[str] = None,
-    model_name: str = GROQ_MODEL
+    model_name: str = 'llama-3.3-70b-versatile'
 ) -> List[Dict]:
     """
     Main function: Summarize recent articles from database
